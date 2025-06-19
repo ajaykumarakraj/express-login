@@ -20,7 +20,6 @@ export const registerController = async (req, res) => {
         if (!address) {
             res.send({ error: "address is require" })
         }
-
         //check user
         const existingUser = await userModel.findOne({ email })
         //existing  user
@@ -100,6 +99,50 @@ export const loginController = async (req, res) => {
     }
 }
 
+// forgetpassword
+export const forgetPassword = async (req, res) => {
+    try {
+        const { email, answer, newPassword } = req.body
+        if (!email) {
+            res.status(400).send({
+                message: "email is required"
+            })
+        }
+        if (!answer) {
+            res.status(400).send({
+                message: "answer is required"
+            })
+        }
+        if (!newPassword) {
+            res.status(400).send({
+                message: "new password  is required"
+            })
+        }
+        // check 
+        const user = await userModel.findOne({ email, answer })
+        // validation
+        if (!user) {
+            return res.status(500).send({
+                succes: false,
+                message: "wrong email or password"
+            })
+        }
+        const hashed = await hashPassword(newPassword)
+        await userModel.findByIdAndUpdate(user._id, { password: hashed })
+        res.status(200).send({
+            succes: true,
+            message: "password reset successfully"
+        })
+
+    } catch (error) {
+        console.log(error)
+        res.status(500).send({
+            succes: false,
+            message: "something went wrong",
+            error
+        })
+    }
+}
 // test controller 
 export const testController = (req, res) => {
     res.send("test protect rotes")
